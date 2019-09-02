@@ -2,6 +2,7 @@ package com.retorfit.library.interceptor;
 
 
 import com.retorfit.library.interfaces.ILoadingView;
+
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.ObservableTransformer;
@@ -68,5 +69,4 @@ public class Transformer {
             }
         };
     }
-
 }

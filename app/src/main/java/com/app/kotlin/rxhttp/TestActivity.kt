@@ -38,11 +38,11 @@ class TestActivity : AppCompatActivity() {
     }
 
     private fun post() {
-        val map = HashMap<String, String>()
-        map["type"] = "top"
-        map["key"] = "f323c09a114635eb935ed8dd19f7284e"
+//        val map = HashMap<String, String>()
+//        map["type"] = "top"
+//        map["key"] = "f323c09a114635eb935ed8dd19f7284e"
         RxHttp.createApi(MineApi::class.java)
-            .getNews(map)
+            .getNews("top","f323c09a114635eb935ed8dd19f7284e")
             .compose(Transformer.switchSchedulers())
             .subscribe(object : DataObserver<NewsResp>() {
 
@@ -65,7 +65,7 @@ class TestActivity : AppCompatActivity() {
         map["tag"] = ""
         map["itvNum"] = "DMT2015122206@ITVP"
         map["contentType"] = "0"
-        map["token"] = "MTU2NzA0ODAyOTg2MUM"
+        map["token"] = "MTU2NzQxMTQzNDM5OFI"
         RxHttp.createApi("getImageData", "", MineApi::class.java)
             .getImage(map)
             .compose(Transformer.switchSchedulers())
@@ -76,7 +76,6 @@ class TestActivity : AppCompatActivity() {
 
                 override fun onError(errorMsg: String) {
                 }
-
             })
 
     }

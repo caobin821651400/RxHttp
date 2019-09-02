@@ -15,16 +15,23 @@
  */
 package com.retorfit.library.interceptor;
 
-import okhttp3.*;
-import okhttp3.internal.http.HttpHeaders;
-import okhttp3.internal.platform.Platform;
-import okio.Buffer;
-import okio.BufferedSource;
-
 import java.io.EOFException;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.Connection;
+import okhttp3.Headers;
+import okhttp3.Interceptor;
+import okhttp3.MediaType;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okhttp3.internal.http.HttpHeaders;
+import okhttp3.internal.platform.Platform;
+import okio.Buffer;
+import okio.BufferedSource;
 
 import static okhttp3.internal.platform.Platform.INFO;
 
@@ -93,7 +100,7 @@ public final class RxLogInterceptor implements Interceptor {
             String name = headers.name(i);
             // Skip headers from the request body as they are explicitly logged above.
             if (!"Content-Type".equalsIgnoreCase(name) && !"Content-Length".equalsIgnoreCase(name)) {
-                logger.log(name + ": " + headers.value(i));
+                logger.log("请求头: [" + name + ": " + headers.value(i)+"]");
             }
         }
 
@@ -131,20 +138,20 @@ public final class RxLogInterceptor implements Interceptor {
             logger.log("<-- HTTP FAILED: " + e);
             throw e;
         }
-        long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+//        long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
 
         ResponseBody responseBody = response.body();
         long contentLength = responseBody.contentLength();
-        logger.log("<-- "
-                + response.code()
-                + (response.message().isEmpty() ? "" : ' ' + response.message())
-                + ' ' + response.request().url()
-                + " (" + tookMs + "ms" + ')');
+//        logger.log("<-- "
+//                + response.code()
+//                + (response.message().isEmpty() ? "" : ' ' + response.message())
+//                + ' ' + response.request().url()
+//                + " (" + tookMs + "ms" + ')');
 
-        Headers headers1 = response.headers();
-        for (int i = 0, count = headers1.size(); i < count; i++) {
-            logger.log(headers1.name(i) + ": " + headers1.value(i));
-        }
+//        Headers headers1 = response.headers();
+//        for (int i = 0, count = headers1.size(); i < count; i++) {
+//            logger.log(headers1.name(i) + ": " + headers1.value(i));
+//        }
 
         if (!HttpHeaders.hasBody(response)) {
             logger.log("<-- END HTTP");
