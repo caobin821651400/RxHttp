@@ -6,7 +6,6 @@ import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import com.app.kotlin.rxhttp.bean.DataObserver
 import com.retorfit.library.RxHttp
 import com.retorfit.library.download.DownloadObserver
@@ -15,12 +14,19 @@ import com.retorfit.library.observer.CommonObserver
 import com.retorfit.library.observer.StringObserver
 import com.retorfit.library.upload.ProgressInfo
 import com.retorfit.library.upload.UploadProgressListener
+import com.trello.rxlifecycle3.android.ActivityEvent
+import com.trello.rxlifecycle3.components.support.RxAppCompatActivity
+import io.reactivex.Observable
+import io.reactivex.Observer
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import org.json.JSONObject
+import java.util.concurrent.TimeUnit
 
-class TestActivity : AppCompatActivity() {
+class TestActivity : RxAppCompatActivity() {
 
     lateinit var tv: TextView
 
@@ -29,7 +35,7 @@ class TestActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         tv = findViewById(R.id.tv)
         findViewById<View>(R.id.aaa).setOnClickListener {
-                        post()
+            post()
 //            uploadImage()
 //            download()
 //            upJson()
@@ -42,17 +48,35 @@ class TestActivity : AppCompatActivity() {
 //        map["type"] = "top"
 //        map["key"] = "f323c09a114635eb935ed8dd19f7284e"
         RxHttp.createApi(MineApi::class.java)
-            .getNews("top","f323c09a114635eb935ed8dd19f7284e")
-            .compose(Transformer.switchSchedulers())
-            .subscribe(object : DataObserver<NewsResp>() {
+                .getNews("top", "f323c09a114635eb935ed8dd19f7284e")
+                .compose(bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(Transformer.switchSchedulers())
+                .subscribe(object : DataObserver<NewsResp>() {
 
-                override fun onError(errorMsg: String) {
-                }
+                    override fun onError(errorMsg: String) {
+                    }
 
-                override fun onSuccess(data: NewsResp) {
-                    System.err.println(data.data?.get(0)?.title)
-                }
-            })
+                    override fun onSuccess(data: NewsResp) {
+                        Observable.timer(8, TimeUnit.SECONDS)
+                                .compose(bindUntilEvent(ActivityEvent.DESTROY))
+                                .observeOn(AndroidSchedulers.mainThread())
+                                .subscribe(object : Observer<Long> {
+                                    override fun onComplete() {
+                                    }
+
+                                    override fun onSubscribe(d: Disposable) {
+                                    }
+
+                                    override fun onNext(t: Long) {
+                                        System.err.println(data.data?.get(0)?.title)
+                                    }
+
+                                    override fun onError(e: Throwable) {
+                                    }
+
+                                })
+                    }
+                })
     }
 
     /**
@@ -67,16 +91,17 @@ class TestActivity : AppCompatActivity() {
         map["contentType"] = "0"
         map["token"] = "MTU2NzQxMTQzNDM5OFI"
         RxHttp.createApi("getImageData", "", MineApi::class.java)
-            .getImage(map)
-            .compose(Transformer.switchSchedulers())
-            .subscribe(object : StringObserver() {
-                override fun onSuccess(data: String) {
-                    val da = data
-                }
+                .getImage(map)
+                .compose(bindUntilEvent(ActivityEvent.DESTROY))
+                .compose(Transformer.switchSchedulers())
+                .subscribe(object : StringObserver() {
+                    override fun onSuccess(data: String) {
+                        val da = data
+                    }
 
-                override fun onError(errorMsg: String) {
-                }
-            })
+                    override fun onError(errorMsg: String) {
+                    }
+                })
 
     }
 
@@ -95,21 +120,21 @@ class TestActivity : AppCompatActivity() {
         map["viewSrc"] = "1"
         map["token"] = "MTU2NzA0ODAyOTg2MUM"
         RxHttp.uploadImgParams(
-            "",
-            "/storage/emulated/0/DCIM/Camera/IMG_20190828_094425.jpg", map, listener
+                "",
+                "/storage/emulated/0/DCIM/Camera/IMG_20190828_094425.jpg", map, listener
         )
-            .compose(Transformer.switchSchedulers())
-            .subscribe(object : CommonObserver<ResponseBody>() {
-                override fun onSuccess(t: ResponseBody) {
-                    val msg = t.string()
-                    Log.e("allen", "上传完毕: $msg")
-                }
+                .compose(Transformer.switchSchedulers())
+                .subscribe(object : CommonObserver<ResponseBody>() {
+                    override fun onSuccess(t: ResponseBody) {
+                        val msg = t.string()
+                        Log.e("allen", "上传完毕: $msg")
+                    }
 
-                override fun onError(errorMsg: String?) {
-                }
+                    override fun onError(errorMsg: String?) {
+                    }
 
 
-            })
+                })
     }
 
     /**
@@ -117,23 +142,23 @@ class TestActivity : AppCompatActivity() {
      */
     private fun download() {
         RxHttp.downloadFile("/download/DMT2015122206ITVP1DIPMGKAIGK36MP.jpg")
-            .subscribe(object : DownloadObserver("图片.jpg", Environment.getExternalStorageDirectory().absolutePath) {
-                override fun onError(errorMsg: String?) {
-                }
-
-                override fun onSuccess(
-                    bytesRead: Long,
-                    contentLength: Long,
-                    progress: Float,
-                    done: Boolean,
-                    filePath: String?
-                ) {
-                    Log.d("AAv ", "下 载中：$progress%")
-                    if (done) {
-                        Log.d("AAv ", "下载完成：$filePath")
+                .subscribe(object : DownloadObserver("图片.jpg", Environment.getExternalStorageDirectory().absolutePath) {
+                    override fun onError(errorMsg: String?) {
                     }
-                }
-            })
+
+                    override fun onSuccess(
+                            bytesRead: Long,
+                            contentLength: Long,
+                            progress: Float,
+                            done: Boolean,
+                            filePath: String?
+                    ) {
+                        Log.d("AAv ", "下 载中：$progress%")
+                        if (done) {
+                            Log.d("AAv ", "下载完成：$filePath")
+                        }
+                    }
+                })
     }
 
     /**
@@ -143,7 +168,7 @@ class TestActivity : AppCompatActivity() {
         @SuppressLint("SetTextI18n")
         override fun onProgress(progressInfo: ProgressInfo) {
             Log.d("进度 ", "${progressInfo.percent} / 100")
-            tv.text="${progressInfo.percent} / 100"
+            tv.text = "${progressInfo.percent} / 100"
         }
 
         override fun onError(id: Long, e: Exception?) {
@@ -169,14 +194,15 @@ class TestActivity : AppCompatActivity() {
         val body = RequestBody.create(MediaType.parse("application/json"), params)
 
         RxHttp.createApi("upJson", "", MineApi::class.java)
-            .maidian(body)
-            .compose(Transformer.switchSchedulers())
-            .subscribe(object : StringObserver() {
-                override fun onSuccess(data: String?) {
-                }
+                .maidian(body)
+                //.compose()
+                .compose(Transformer.switchSchedulers())
+                .subscribe(object : StringObserver() {
+                    override fun onSuccess(data: String?) {
+                    }
 
-                override fun onError(errorMsg: String?) {
-                }
-            })
+                    override fun onError(errorMsg: String?) {
+                    }
+                })
     }
 }

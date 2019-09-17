@@ -11,6 +11,7 @@ import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
+import io.reactivex.processors.BehaviorProcessor;
 import io.reactivex.schedulers.Schedulers;
 
 
@@ -23,7 +24,6 @@ import io.reactivex.schedulers.Schedulers;
  * ====================================================
  */
 public class Transformer {
-
     /**
      * 无参数
      *
